@@ -3,10 +3,29 @@ const searchInput = document.querySelector("#search-input");
 const answerTextEl = document.querySelector("#answer-text");
 const answerMetaEl = document.querySelector("#answer-meta");
 const datalistEl = document.querySelector("#city-options");
+const APP_CONFIG = window.SMEIGE_APP_CONFIG || {};
+const API_BASE_URL = String(APP_CONFIG.apiBaseUrl || "").replace(/\/$/, "");
 const DATA_URL = "./data/smeigedager-2025.json";
+const FEATURED_CITIES = [
+  "Arendal",
+  "Kristiansand",
+  "Oslo",
+  "Bergen",
+  "Stavanger",
+  "Tromsø",
+  "Bodø",
+  "Steinkjer",
+  "Trondheim",
+  "Molde",
+  "Sandnes",
+  "Lyngdal",
+  "Drammen",
+  "Sarpsborg",
+  "Hamar",
+];
 
 let dataset = null;
-let supportedCities = [];
+let supportedCities = [...FEATURED_CITIES];
 let placeholderTimer = null;
 
 function shuffle(values) {
@@ -23,7 +42,7 @@ function updatePlaceholder(city) {
 }
 
 function startPlaceholderRotation(cities) {
-  const sequence = shuffle(cities);
+  const sequence = shuffle(cities.length ? cities : FEATURED_CITIES);
   let index = 0;
 
   updatePlaceholder(sequence[index]);
@@ -66,19 +85,36 @@ function findPlace(query) {
   }) || null;
 }
 
-function renderAnswer(place) {
+function renderAnswerFromDataset(place) {
   answerTextEl.textContent = `${place.name} hadde ${place.smeigedager} smeigedager i ${dataset.year}.`;
   answerMetaEl.textContent = `Basert pa Frost-data fra ${place.source.label}. Smeigedag = Makstemperatur over ${dataset.criteria.maxTemperatureC} grader og ${dataset.criteria.precipitationMm} mm nedbor.`;
 }
 
-async function loadDataset() {
-  const response = await fetch(DATA_URL);
-  const payload = await response.json();
+function renderAnswerFromApi(payload) {
+  answerTextEl.textContent = `${payload.city} hadde ${payload.smeigedager} smeigedager i ${payload.year}.`;
+  answerMetaEl.textContent = `Basert pa Frost-data fra ${payload.source.name} (${payload.source.id}). Smeigedag = Makstemperatur over ${payload.criteria.maxTemperatureC} grader og ${payload.criteria.precipitationMm} mm nedbor.`;
+}
+
+async function fetchJson(url) {
+  const response = await fetch(url);
+  const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error("Kunne ikke lese smeigedager-data.");
+    throw new Error(payload.error || "Kunne ikke hente data.");
   }
 
+  return payload;
+}
+
+async function loadApiMeta() {
+  const payload = await fetchJson(`${API_BASE_URL}/api/meta`);
+  supportedCities = payload.featuredCities || payload.supportedCities || FEATURED_CITIES;
+  fillDatalist(supportedCities);
+  startPlaceholderRotation(supportedCities);
+}
+
+async function loadStaticDataset() {
+  const payload = await fetchJson(DATA_URL);
   dataset = payload;
   supportedCities = payload.places.map((place) => place.name);
   fillDatalist(supportedCities);
@@ -94,19 +130,29 @@ searchForm.addEventListener("submit", async (event) => {
   }
 
   try {
+    if (API_BASE_URL) {
+      const payload = await fetchJson(`${API_BASE_URL}/api/smeigedager?place=${encodeURIComponent(place)}`);
+      renderAnswerFromApi(payload);
+      return;
+    }
+
     const match = findPlace(place);
     if (!match) {
       throw new Error("Velg et sted fra listen.");
     }
 
-    renderAnswer(match);
+    renderAnswerFromDataset(match);
   } catch (_error) {
     answerTextEl.textContent = "Jeg fant ikke et gyldig sted.";
-    answerMetaEl.textContent = `Prov en av disse: ${supportedCities.join(", ")}.`;
+    answerMetaEl.textContent = API_BASE_URL
+      ? "Prov et annet sted, eller sjekk at backend-URL-en i config.js er riktig."
+      : `Prov en av disse: ${supportedCities.join(", ")}.`;
   }
 });
 
-loadDataset().catch(() => {
+(API_BASE_URL ? loadApiMeta() : loadStaticDataset()).catch(() => {
   answerTextEl.textContent = "Smeigedager-data kunne ikke lastes.";
-  answerMetaEl.textContent = "Prov a laste siden pa nytt.";
+  answerMetaEl.textContent = API_BASE_URL
+    ? "Sjekk at backend-URL-en i config.js peker til en levende API."
+    : "Prov a laste siden pa nytt.";
 });

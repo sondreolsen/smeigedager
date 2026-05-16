@@ -20,6 +20,24 @@ const MIME_TYPES = {
   ".svg": "image/svg+xml",
 };
 
+const FEATURED_CITIES = [
+  "Arendal",
+  "Kristiansand",
+  "Oslo",
+  "Bergen",
+  "Stavanger",
+  "Tromsø",
+  "Bodø",
+  "Steinkjer",
+  "Trondheim",
+  "Molde",
+  "Sandnes",
+  "Lyngdal",
+  "Drammen",
+  "Sarpsborg",
+  "Hamar",
+];
+
 const SUPPORTED_CITIES = [
   "Arendal",
   "Kristiansand",
@@ -113,6 +131,9 @@ function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, {
     "Content-Type": "application/json; charset=utf-8",
     "Cache-Control": "no-store",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
   });
   res.end(JSON.stringify(payload, null, 2));
 }
@@ -120,6 +141,7 @@ function sendJson(res, statusCode, payload) {
 function sendText(res, statusCode, message) {
   res.writeHead(statusCode, {
     "Content-Type": "text/plain; charset=utf-8",
+    "Access-Control-Allow-Origin": "*",
   });
   res.end(message);
 }
@@ -217,6 +239,34 @@ function normalizeCityName(value) {
 function canonicalCityName(value) {
   const normalized = normalizeCityName(value);
   return SUPPORTED_CITIES.find((city) => normalizeCityName(city) === normalized) || null;
+}
+
+function scoreSourceMatch(query, source) {
+  const normalizedQuery = normalizeCityName(query);
+  const name = normalizeCityName(source.name);
+  const municipality = normalizeCityName(source.municipality);
+  let score = 0;
+
+  if (name === normalizedQuery) {
+    score += 100;
+  }
+  if (municipality === normalizedQuery) {
+    score += 90;
+  }
+  if (name.startsWith(normalizedQuery)) {
+    score += 30;
+  }
+  if (municipality.startsWith(normalizedQuery)) {
+    score += 25;
+  }
+  if (name.includes(normalizedQuery)) {
+    score += 10;
+  }
+  if (municipality.includes(normalizedQuery)) {
+    score += 8;
+  }
+
+  return score;
 }
 
 async function fetchFrostJson(url) {
@@ -346,6 +396,56 @@ async function resolveCitySource(city) {
   throw new Error(`Fant ingen Frost-stasjon med riktige serier for ${city}.`);
 }
 
+async function searchFrostSources(query) {
+  const collected = new Map();
+  const trimmedQuery = query.trim();
+  const normalizedUpper = trimmedQuery.toUpperCase();
+
+  const urls = [];
+  const byName = new URL("https://frost.met.no/sources/v0.jsonld");
+  byName.searchParams.set("types", "SensorSystem");
+  byName.searchParams.set("name", `${trimmedQuery}*`);
+  byName.searchParams.set("fields", "id,name,municipality,county,geometry");
+  urls.push(byName);
+
+  const byMunicipality = new URL("https://frost.met.no/sources/v0.jsonld");
+  byMunicipality.searchParams.set("types", "SensorSystem");
+  byMunicipality.searchParams.set("municipality", normalizedUpper);
+  byMunicipality.searchParams.set("fields", "id,name,municipality,county,geometry");
+  urls.push(byMunicipality);
+
+  for (const url of urls) {
+    try {
+      const payload = await fetchFrostJson(url.toString());
+      for (const item of mapFrostPlaces(payload)) {
+        collected.set(item.id, item);
+      }
+    } catch (_error) {
+      // Ignore empty or unsupported source searches and continue with the next lookup.
+    }
+  }
+
+  return [...collected.values()]
+    .sort((a, b) => scoreSourceMatch(trimmedQuery, b) - scoreSourceMatch(trimmedQuery, a))
+    .slice(0, 20);
+}
+
+async function resolvePlaceSource(query) {
+  const candidates = await searchFrostSources(query);
+
+  if (!candidates.length) {
+    throw new Error("Fant ingen Frost-stasjoner som matcher søket.");
+  }
+
+  for (const candidate of candidates) {
+    if (await sourceSupportsSmeigedager(candidate.id)) {
+      return candidate;
+    }
+  }
+
+  throw new Error("Fant ingen Frost-stasjon med daglig makstemperatur og nedbør for dette stedet.");
+}
+
 async function getSmeigedagerForCity(city) {
   const canonicalCity = canonicalCityName(city);
   if (!canonicalCity) {
@@ -401,6 +501,46 @@ async function getSmeigedagerForCity(city) {
   };
 }
 
+async function getSmeigedagerForQuery(query) {
+  const canonicalCity = canonicalCityName(query);
+  if (!FROST_CLIENT_ID) {
+    if (!canonicalCity) {
+      throw new Error("Live-søk krever backend med Frost-nøkkel. Uten backend virker bare de faste eksempelstedene.");
+    }
+    return getSmeigedagerForCity(canonicalCity);
+  }
+
+  const source = await resolvePlaceSource(query);
+  const [temperatureByDate, precipitationByDate] = await Promise.all([
+    fetchObservationSeries(source.id, "max(air_temperature P1D)", "PT18H"),
+    fetchObservationSeries(source.id, "sum(precipitation_amount P1D)", "PT6H"),
+  ]);
+
+  let smeigedager = 0;
+  for (const [date, maxTemperature] of temperatureByDate.entries()) {
+    const precipitation = precipitationByDate.get(date);
+    if (precipitation === undefined) {
+      continue;
+    }
+
+    if (maxTemperature > 18 && precipitation === 0) {
+      smeigedager += 1;
+    }
+  }
+
+  return {
+    mode: "live",
+    city: source.municipality || source.name,
+    year: 2025,
+    smeigedager,
+    criteria: {
+      maxTemperatureC: 18,
+      precipitationMm: 0,
+    },
+    source,
+  };
+}
+
 function mapFrostPlaces(payload) {
   return (payload.data || []).map((item) => ({
     id: item.id,
@@ -434,15 +574,9 @@ async function handlePlaceSearch(reqUrl, res) {
   }
 
   try {
-    const endpoint = new URL("https://frost.met.no/sources/v0.jsonld");
-    endpoint.searchParams.set("types", "SensorSystem");
-    endpoint.searchParams.set("name", `${q}*`);
-    endpoint.searchParams.set("fields", "id,name,municipality,county,geometry");
-
-    const payload = await fetchFrostJson(endpoint.toString());
     sendJson(res, 200, {
       mode: "live",
-      places: mapFrostPlaces(payload).slice(0, 8),
+      places: await searchFrostSources(q),
     });
   } catch (error) {
     sendJson(res, 502, { error: error.message });
@@ -512,26 +646,29 @@ async function handleWeather(reqUrl, res) {
 
 async function handleSmeigedager(reqUrl, res) {
   const place = (reqUrl.searchParams.get("place") || "").trim();
-  const canonicalCity = canonicalCityName(place);
-
-  if (!canonicalCity) {
+  if (!place) {
     sendJson(res, 400, {
-      error: "Velg et sted fra den faste listen.",
-      supportedCities: SUPPORTED_CITIES,
+      error: "Skriv inn et sted.",
+      featuredCities: FEATURED_CITIES,
     });
     return;
   }
 
   try {
-    const payload = await getSmeigedagerForCity(canonicalCity);
+    const payload = await getSmeigedagerForQuery(place);
     sendJson(res, 200, payload);
   } catch (error) {
-    sendJson(res, 502, { error: error.message, supportedCities: SUPPORTED_CITIES });
+    sendJson(res, 502, { error: error.message, featuredCities: FEATURED_CITIES });
   }
 }
 
 const server = http.createServer(async (req, res) => {
   const reqUrl = new URL(req.url, `http://${req.headers.host}`);
+
+  if (req.method === "OPTIONS") {
+    sendJson(res, 200, { ok: true });
+    return;
+  }
 
   if (reqUrl.pathname === "/api/meta") {
     sendJson(res, 200, {
@@ -540,6 +677,7 @@ const server = http.createServer(async (req, res) => {
       hasFrostClientSecret: Boolean(FROST_CLIENT_SECRET),
       appBaseUrl: APP_BASE_URL,
       supportedCities: SUPPORTED_CITIES,
+      featuredCities: FEATURED_CITIES,
     });
     return;
   }

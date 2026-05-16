@@ -85,6 +85,17 @@ Hvis `FROST_CLIENT_ID` ikke er satt, bruker appen demo-data slik at grensesnitte
 
 GitHub Pages er ikke nok for denne appen alene, fordi Frost-kallene må gå via backend. Derfor er prosjektet nå klargjort for en Node-host med `render.yaml`.
 
+GitHub Pages-versjonen kan nå også bruke en ekstern backend via `config.js`.
+Sett:
+
+```js
+window.SMEIGE_APP_CONFIG = {
+  apiBaseUrl: "https://din-backend.example"
+};
+```
+
+Når `apiBaseUrl` er satt, spør siden direkte mot backend for steder i Frost i stedet for bare den statiske eksempeldataen.
+
 Forslag til drift:
 
 1. Opprett en ny Web Service i Render fra GitHub-repoet.
