@@ -8,7 +8,9 @@ loadDotEnv();
 const PORT = Number(process.env.PORT || 3000);
 const PUBLIC_DIR = path.join(__dirname, "public");
 const FROST_CLIENT_ID = process.env.FROST_CLIENT_ID || "";
+const FROST_CLIENT_SECRET = process.env.FROST_CLIENT_SECRET || "";
 const APP_BASE_URL = process.env.APP_BASE_URL || "http://localhost:3000";
+let frostTokenCache = null;
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -218,13 +220,21 @@ function canonicalCityName(value) {
 }
 
 async function fetchFrostJson(url) {
-  const auth = Buffer.from(`${FROST_CLIENT_ID}:`).toString("base64");
+  const headers = {
+    Accept: "application/json",
+    "User-Agent": `Smeigedager/1.0 ${APP_BASE_URL}`,
+  };
+
+  if (FROST_CLIENT_SECRET) {
+    const token = await getFrostAccessToken();
+    headers.Authorization = `Bearer ${token}`;
+  } else {
+    const auth = Buffer.from(`${FROST_CLIENT_ID}:`).toString("base64");
+    headers.Authorization = `Basic ${auth}`;
+  }
+
   const response = await fetch(url, {
-    headers: {
-      Authorization: `Basic ${auth}`,
-      Accept: "application/json",
-      "User-Agent": `Smeigedager/1.0 ${APP_BASE_URL}`,
-    },
+    headers,
   });
 
   const data = await response.json().catch(() => ({}));
@@ -235,6 +245,41 @@ async function fetchFrostJson(url) {
   }
 
   return data;
+}
+
+async function getFrostAccessToken() {
+  if (frostTokenCache && frostTokenCache.expiresAt > Date.now() + 60_000) {
+    return frostTokenCache.accessToken;
+  }
+
+  const body = new URLSearchParams({
+    client_id: FROST_CLIENT_ID,
+    client_secret: FROST_CLIENT_SECRET,
+    grant_type: "client_credentials",
+  });
+
+  const response = await fetch("https://frost.met.no/auth/accessToken", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/x-www-form-urlencoded",
+      "User-Agent": `Smeigedager/1.0 ${APP_BASE_URL}`,
+    },
+    body,
+  });
+
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload.access_token) {
+    const message = payload.error_description || payload.error || "Failed to obtain Frost access token";
+    throw new Error(message);
+  }
+
+  frostTokenCache = {
+    accessToken: payload.access_token,
+    expiresAt: Date.now() + Number(payload.expires_in || 86400) * 1000,
+  };
+
+  return frostTokenCache.accessToken;
 }
 
 async function fetchObservationSeries(sourceId, elementId, timeOffset) {
@@ -492,6 +537,7 @@ const server = http.createServer(async (req, res) => {
     sendJson(res, 200, {
       mode: FROST_CLIENT_ID ? "live" : "demo",
       hasFrostClientId: Boolean(FROST_CLIENT_ID),
+      hasFrostClientSecret: Boolean(FROST_CLIENT_SECRET),
       appBaseUrl: APP_BASE_URL,
       supportedCities: SUPPORTED_CITIES,
     });

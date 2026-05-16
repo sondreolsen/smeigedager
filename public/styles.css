@@ -20,7 +20,8 @@ body {
   font-family: Georgia, "Times New Roman", serif;
   color: var(--ink);
   background:
-    radial-gradient(circle at top, rgba(217, 100, 58, 0.18), transparent 24%),
+    linear-gradient(rgba(252, 250, 245, 0.5), rgba(246, 242, 232, 0.75)),
+    url("/background-90s.png") center center / cover no-repeat fixed,
     linear-gradient(180deg, #fcfaf5 0%, var(--bg) 100%);
 }
 
@@ -38,10 +39,11 @@ body {
   display: grid;
   gap: 14px;
   padding: 32px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 28px;
-  background: var(--surface);
-  box-shadow: var(--shadow);
+  background: rgba(255, 250, 242, 0.72);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 24px 90px rgba(61, 41, 16, 0.16);
 }
 
 .question-label {
@@ -94,6 +96,7 @@ body {
 .answer {
   min-height: 120px;
   padding: 0 4px;
+  text-shadow: 0 1px 8px rgba(255, 248, 235, 0.55);
 }
 
 .answer-text {
@@ -112,8 +115,20 @@ body {
 
 .status {
   margin: 0;
-  color: var(--muted);
+  color: #514c44;
   font-size: 0.95rem;
+  text-shadow: 0 1px 6px rgba(255, 248, 235, 0.5);
+}
+
+.footnote {
+  position: fixed;
+  right: 18px;
+  bottom: 14px;
+  margin: 0;
+  color: rgba(23, 23, 23, 0.72);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 4px rgba(255, 248, 235, 0.55);
 }
 
 @media (max-width: 980px) {
@@ -132,5 +147,11 @@ body {
   .question-shell {
     padding: 18px;
     border-radius: 22px;
+  }
+
+  .footnote {
+    right: 12px;
+    bottom: 10px;
+    font-size: 0.72rem;
   }
 }
