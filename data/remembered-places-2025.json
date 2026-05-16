@@ -1,0 +1,531 @@
+{
+  "year": 2025,
+  "criteria": {
+    "maxTemperatureC": 18,
+    "precipitationMm": 0
+  },
+  "places": [
+    {
+      "name": "Oslo",
+      "aliases": [
+        "Oslo",
+        "OSLO - BLINDERN"
+      ],
+      "smeigedager": 49,
+      "source": {
+        "label": "OSLO - BLINDERN (SN18700)"
+      }
+    },
+    {
+      "name": "Bergen",
+      "aliases": [
+        "Bergen",
+        "BERGEN - FLORIDA"
+      ],
+      "smeigedager": 33,
+      "source": {
+        "label": "BERGEN - FLORIDA (SN50540)"
+      }
+    },
+    {
+      "name": "Trondheim",
+      "aliases": [
+        "Trondheim",
+        "TRONDHEIM - VOLL"
+      ],
+      "smeigedager": 38,
+      "source": {
+        "label": "TRONDHEIM - VOLL (SN68860)"
+      }
+    },
+    {
+      "name": "Stavanger",
+      "aliases": [
+        "Stavanger",
+        "STAVANGER - VÅLAND"
+      ],
+      "smeigedager": 29,
+      "source": {
+        "label": "STAVANGER - VÅLAND (SN44640)"
+      }
+    },
+    {
+      "name": "Drammen",
+      "aliases": [
+        "Drammen",
+        "DRAMMEN - BERSKOG"
+      ],
+      "smeigedager": 55,
+      "source": {
+        "label": "DRAMMEN - BERSKOG (SN26900)"
+      }
+    },
+    {
+      "name": "Fredrikstad",
+      "aliases": [
+        "Fredrikstad",
+        "STRØMTANGEN FYR"
+      ],
+      "smeigedager": 49,
+      "source": {
+        "label": "STRØMTANGEN FYR (SN17000)"
+      }
+    },
+    {
+      "name": "Sarpsborg",
+      "aliases": [
+        "Sarpsborg"
+      ],
+      "smeigedager": 60,
+      "source": {
+        "label": "SARPSBORG (SN3190)"
+      }
+    },
+    {
+      "name": "Porsgrunn",
+      "aliases": [
+        "Porsgrunn",
+        "PORSGRUNN - ÅS"
+      ],
+      "smeigedager": 67,
+      "source": {
+        "label": "PORSGRUNN - ÅS (SN30255)"
+      }
+    },
+    {
+      "name": "Kristiansand",
+      "aliases": [
+        "Kristiansand",
+        "KJEVIK"
+      ],
+      "smeigedager": 61,
+      "source": {
+        "label": "KJEVIK (SN39040)"
+      }
+    },
+    {
+      "name": "Sandnes",
+      "aliases": [
+        "Sandnes",
+        "LYSEBOTN"
+      ],
+      "smeigedager": 30,
+      "source": {
+        "label": "LYSEBOTN (SN45350)"
+      }
+    },
+    {
+      "name": "Tromso",
+      "aliases": [
+        "Tromso",
+        "TROMSØ"
+      ],
+      "smeigedager": 25,
+      "source": {
+        "label": "TROMSØ (SN90450)"
+      }
+    },
+    {
+      "name": "Alesund",
+      "aliases": [
+        "Alesund",
+        "ÅLESUND IV"
+      ],
+      "smeigedager": 2,
+      "source": {
+        "label": "ÅLESUND IV (SN60945)"
+      }
+    },
+    {
+      "name": "Tonsberg",
+      "aliases": [
+        "Tonsberg",
+        "TØNSBERG",
+        "TØNSBERG - KARLSVIK"
+      ],
+      "smeigedager": 57,
+      "source": {
+        "label": "TØNSBERG - KARLSVIK (SN27262)"
+      }
+    },
+    {
+      "name": "Moss",
+      "aliases": [
+        "Moss",
+        "RYGGE"
+      ],
+      "smeigedager": 52,
+      "source": {
+        "label": "RYGGE (SN17150)"
+      }
+    },
+    {
+      "name": "Bodo",
+      "aliases": [
+        "Bodo",
+        "BODØ",
+        "BODØ VI"
+      ],
+      "smeigedager": 29,
+      "source": {
+        "label": "BODØ VI (SN82290)"
+      }
+    },
+    {
+      "name": "Arendal",
+      "aliases": [
+        "Arendal",
+        "TORUNGEN FYR"
+      ],
+      "smeigedager": 34,
+      "source": {
+        "label": "TORUNGEN FYR (SN36200)"
+      }
+    },
+    {
+      "name": "Hamar",
+      "aliases": [
+        "Hamar",
+        "HAMAR II"
+      ],
+      "smeigedager": 60,
+      "source": {
+        "label": "HAMAR II (SN12290)"
+      }
+    },
+    {
+      "name": "Larvik",
+      "aliases": [
+        "Larvik",
+        "KVELDE"
+      ],
+      "smeigedager": 70,
+      "source": {
+        "label": "KVELDE (SN27860)"
+      }
+    },
+    {
+      "name": "Sandefjord",
+      "aliases": [
+        "Sandefjord",
+        "SANDEFJORD - NORDRE BERGAN"
+      ],
+      "smeigedager": 58,
+      "source": {
+        "label": "SANDEFJORD - NORDRE BERGAN (SN27480)"
+      }
+    },
+    {
+      "name": "Asker",
+      "aliases": [
+        "Asker"
+      ],
+      "smeigedager": 54,
+      "source": {
+        "label": "ASKER (SN19710)"
+      }
+    },
+    {
+      "name": "Lillehammer",
+      "aliases": [
+        "Lillehammer",
+        "LILLEHAMMER - SÆTHERENGEN"
+      ],
+      "smeigedager": 42,
+      "source": {
+        "label": "LILLEHAMMER - SÆTHERENGEN (SN12680)"
+      }
+    },
+    {
+      "name": "Molde",
+      "aliases": [
+        "Molde",
+        "MOLDE - NØISOMHED"
+      ],
+      "smeigedager": 0,
+      "source": {
+        "label": "MOLDE - NØISOMHED (SN62290)"
+      }
+    },
+    {
+      "name": "Harstad",
+      "aliases": [
+        "Harstad",
+        "HARSTAD STADION"
+      ],
+      "smeigedager": 32,
+      "source": {
+        "label": "HARSTAD STADION (SN87640)"
+      }
+    },
+    {
+      "name": "Kongsberg",
+      "aliases": [
+        "Kongsberg",
+        "KONGSBERG BRANNSTASJON"
+      ],
+      "smeigedager": 72,
+      "source": {
+        "label": "KONGSBERG BRANNSTASJON (SN28380)"
+      }
+    },
+    {
+      "name": "Horten",
+      "aliases": [
+        "Horten",
+        "HORTEN II"
+      ],
+      "smeigedager": 63,
+      "source": {
+        "label": "HORTEN II (SN27160)"
+      }
+    },
+    {
+      "name": "Narvik",
+      "aliases": [
+        "Narvik",
+        "NARVIK SENTRUM"
+      ],
+      "smeigedager": 36,
+      "source": {
+        "label": "NARVIK SENTRUM (SN84701)"
+      }
+    },
+    {
+      "name": "Mandal",
+      "aliases": [
+        "Mandal",
+        "LINDESNES",
+        "MANDAL III"
+      ],
+      "smeigedager": 54,
+      "source": {
+        "label": "MANDAL III (SN41090)"
+      }
+    },
+    {
+      "name": "Grimstad",
+      "aliases": [
+        "Grimstad",
+        "LANDVIK"
+      ],
+      "smeigedager": 72,
+      "source": {
+        "label": "LANDVIK (SN38140)"
+      }
+    },
+    {
+      "name": "Lillestrom",
+      "aliases": [
+        "Lillestrom",
+        "LILLESTRØM",
+        "SKEDSMO - HELLERUD"
+      ],
+      "smeigedager": 55,
+      "source": {
+        "label": "SKEDSMO - HELLERUD (SN4260)"
+      }
+    },
+    {
+      "name": "Fauske",
+      "aliases": [
+        "Fauske",
+        "VALNESFJORD"
+      ],
+      "smeigedager": 2,
+      "source": {
+        "label": "VALNESFJORD (SN82110)"
+      }
+    },
+    {
+      "name": "Levanger",
+      "aliases": [
+        "Levanger",
+        "SKOGN"
+      ],
+      "smeigedager": 52,
+      "source": {
+        "label": "SKOGN (SN69730)"
+      }
+    },
+    {
+      "name": "Verdal",
+      "aliases": [
+        "Verdal",
+        "VERA II"
+      ],
+      "smeigedager": 22,
+      "source": {
+        "label": "VERA II (SN70510)"
+      }
+    },
+    {
+      "name": "Steinkjer",
+      "aliases": [
+        "Steinkjer",
+        "STEINKJER - SØNDRE EGGE"
+      ],
+      "smeigedager": 44,
+      "source": {
+        "label": "STEINKJER - SØNDRE EGGE (SN71000)"
+      }
+    },
+    {
+      "name": "Alta",
+      "aliases": [
+        "Alta",
+        "ALTA LUFTHAVN"
+      ],
+      "smeigedager": 29,
+      "source": {
+        "label": "ALTA LUFTHAVN (SN93140)"
+      }
+    },
+    {
+      "name": "Otta",
+      "aliases": [
+        "Otta",
+        "SEL",
+        "OTTA - SKANSEN"
+      ],
+      "smeigedager": 51,
+      "source": {
+        "label": "OTTA - SKANSEN (SN16040)"
+      }
+    },
+    {
+      "name": "Hammerfest",
+      "aliases": [
+        "Hammerfest",
+        "HAMMERFEST LUFTHAVN"
+      ],
+      "smeigedager": 19,
+      "source": {
+        "label": "HAMMERFEST LUFTHAVN (SN94280)"
+      }
+    },
+    {
+      "name": "Voss",
+      "aliases": [
+        "Voss",
+        "VOSSAVANGEN"
+      ],
+      "smeigedager": 51,
+      "source": {
+        "label": "VOSSAVANGEN (SN51530)"
+      }
+    },
+    {
+      "name": "Kongsvinger",
+      "aliases": [
+        "Kongsvinger"
+      ],
+      "smeigedager": 47,
+      "source": {
+        "label": "KONGSVINGER (SN5590)"
+      }
+    },
+    {
+      "name": "Holmestrand",
+      "aliases": [
+        "Holmestrand",
+        "SANDE - GALLEBERG"
+      ],
+      "smeigedager": 53,
+      "source": {
+        "label": "SANDE - GALLEBERG (SN26990)"
+      }
+    },
+    {
+      "name": "Mosjoen",
+      "aliases": [
+        "Mosjoen",
+        "VEFSN",
+        "MOSJØEN LUFTHAVN"
+      ],
+      "smeigedager": 34,
+      "source": {
+        "label": "MOSJØEN LUFTHAVN (SN77230)"
+      }
+    },
+    {
+      "name": "Sortland",
+      "aliases": [
+        "Sortland",
+        "SORTLAND - KLEIVA"
+      ],
+      "smeigedager": 15,
+      "source": {
+        "label": "SORTLAND - KLEIVA (SN86520)"
+      }
+    },
+    {
+      "name": "Odda",
+      "aliases": [
+        "Odda",
+        "ULLENSVANG",
+        "ODDA - JORDAL"
+      ],
+      "smeigedager": 43,
+      "source": {
+        "label": "ODDA - JORDAL (SN49220)"
+      }
+    },
+    {
+      "name": "Nittedal",
+      "aliases": [
+        "Nittedal",
+        "HAKADAL JERNBANESTASJON"
+      ],
+      "smeigedager": 49,
+      "source": {
+        "label": "HAKADAL JERNBANESTASJON (SN4460)"
+      }
+    },
+    {
+      "name": "Hokksund",
+      "aliases": [
+        "Hokksund",
+        "ØVRE EIKER"
+      ],
+      "smeigedager": 77,
+      "source": {
+        "label": "HOKKSUND (SN26820)"
+      }
+    },
+    {
+      "name": "Orsta",
+      "aliases": [
+        "Orsta",
+        "ØRSTA",
+        "ØRSTA - EITREFJELL"
+      ],
+      "smeigedager": 17,
+      "source": {
+        "label": "ØRSTA - EITREFJELL (SN59695)"
+      }
+    },
+    {
+      "name": "Volda",
+      "aliases": [
+        "Volda",
+        "HORNINDAL"
+      ],
+      "smeigedager": 37,
+      "source": {
+        "label": "HORNINDAL (SN58960)"
+      }
+    },
+    {
+      "name": "As",
+      "aliases": [
+        "As",
+        "ASKER"
+      ],
+      "smeigedager": 54,
+      "source": {
+        "label": "ASKER (SN19710)"
+      }
+    }
+  ]
+}

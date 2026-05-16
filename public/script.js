@@ -6,6 +6,7 @@ const datalistEl = document.querySelector("#city-options");
 const APP_CONFIG = window.SMEIGE_APP_CONFIG || {};
 const API_BASE_URL = String(APP_CONFIG.apiBaseUrl || "").replace(/\/$/, "");
 const DATA_URL = "./data/smeigedager-2025.json";
+const FAST_DATA_URL = "./data/remembered-places-2025.json";
 const FEATURED_CITIES = [
   "Arendal",
   "Kristiansand",
@@ -117,6 +118,14 @@ async function loadApiMeta() {
   startPlaceholderRotation(supportedCities);
 }
 
+async function loadFastDataset() {
+  try {
+    dataset = await fetchJson(FAST_DATA_URL);
+  } catch (_error) {
+    dataset = null;
+  }
+}
+
 async function loadStaticDataset() {
   const payload = await fetchJson(DATA_URL);
   dataset = payload;
@@ -135,6 +144,12 @@ searchForm.addEventListener("submit", async (event) => {
 
   try {
     if (API_BASE_URL) {
+      const cachedMatch = findPlace(place);
+      if (cachedMatch) {
+        renderAnswerFromDataset(cachedMatch);
+        return;
+      }
+
       const payload = await fetchJson(`${API_BASE_URL}/api/smeigedager?place=${encodeURIComponent(place)}`);
       renderAnswerFromApi(payload);
       return;
@@ -154,7 +169,7 @@ searchForm.addEventListener("submit", async (event) => {
   }
 });
 
-(API_BASE_URL ? loadApiMeta() : loadStaticDataset()).catch(() => {
+ (API_BASE_URL ? Promise.all([loadApiMeta(), loadFastDataset()]) : loadStaticDataset()).catch(() => {
   answerTextEl.textContent = "Smeigedager-data kunne ikke lastes.";
   answerMetaEl.textContent = API_BASE_URL
     ? "Sjekk at backend-URL-en i config.js peker til en levende API."

@@ -147,6 +147,31 @@ const REMEMBERED_PLACES = [
   "Varhaug",
 ];
 
+const QUERY_NAME_OVERRIDES = {
+  Tromso: "Tromsø",
+  Bodo: "Bodø",
+  Alesund: "Ålesund",
+  Tonsberg: "Tønsberg",
+  Gjorvik: "Gjøvik",
+  Forde: "Førde",
+  Floro: "Florø",
+  Drobak: "Drøbak",
+  Naerbo: "Nærbø",
+  Orsta: "Ørsta",
+  Osoyro: "Osøyro",
+  Sandnessjoen: "Sandnessjøen",
+  Mosjoen: "Mosjøen",
+  Svolvaer: "Svolvær",
+  Rorvik: "Rørvik",
+  Saetre: "Sætre",
+  Askoy: "Askøy",
+  Kleppesto: "Kleppestø",
+  Stjordalshalsen: "Stjørdalshalsen",
+  Lillestrom: "Lillestrøm",
+  Sogndalsfjaera: "Sogndalsfjøra",
+  Fosnavag: "Fosnavåg",
+};
+
 const SUPPORTED_CITIES = [
   "Arendal",
   "Kristiansand",
@@ -376,6 +401,11 @@ function rememberedPlaceName(value) {
   return REMEMBERED_PLACES.find((place) => normalizeCityName(place) === normalized) || null;
 }
 
+function preferredQueryName(value) {
+  const rememberedPlace = rememberedPlaceName(value) || String(value || "").trim();
+  return QUERY_NAME_OVERRIDES[rememberedPlace] || rememberedPlace;
+}
+
 function scoreSourceMatch(query, source) {
   const normalizedQuery = normalizeCityName(query);
   const name = normalizeCityName(source.name);
@@ -542,14 +572,14 @@ async function resolveCitySource(city) {
 async function searchFrostSources(query) {
   const collected = new Map();
   const trimmedQuery = query.trim();
-  const rememberedQuery = rememberedPlaceName(trimmedQuery) || trimmedQuery;
-  const exactMunicipality = rememberedQuery.toUpperCase();
+  const preferredQuery = preferredQueryName(trimmedQuery);
+  const exactMunicipality = preferredQuery.toUpperCase();
   const normalizedUpper = trimmedQuery.toUpperCase();
 
   const urls = [];
   const exactByName = new URL("https://frost.met.no/sources/v0.jsonld");
   exactByName.searchParams.set("types", "SensorSystem");
-  exactByName.searchParams.set("name", rememberedQuery);
+  exactByName.searchParams.set("name", preferredQuery);
   exactByName.searchParams.set("fields", "id,name,municipality,county,geometry");
   urls.push(exactByName);
 
@@ -561,7 +591,7 @@ async function searchFrostSources(query) {
 
   const byName = new URL("https://frost.met.no/sources/v0.jsonld");
   byName.searchParams.set("types", "SensorSystem");
-  byName.searchParams.set("name", `${rememberedQuery}*`);
+  byName.searchParams.set("name", `${preferredQuery}*`);
   byName.searchParams.set("fields", "id,name,municipality,county,geometry");
   urls.push(byName);
 
