@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Været i Norge</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Historisk vær for Norge</p>
+          <h1>En enkel og moderne måte å lese værhistorikk på.</h1>
+          <p class="lead">
+            Søk opp målestasjoner, velg periode, og få nedbør, snødybde, tørre dager og dager
+            med lite nedbør i ett tydelig dashboard.
+          </p>
+        </div>
+        <div class="hero-panel">
+          <p class="hero-panel-label">Dataflyt</p>
+          <ul class="hero-list">
+            <li>Stedssøk via Frost-stasjoner</li>
+            <li>Historikk via METs Frost API</li>
+            <li>Proxy i backend for autentisering</li>
+          </ul>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="card controls">
+          <div class="section-heading">
+            <h2>Finn sted</h2>
+            <p>Skriv stedsnavn eller stasjonsnavn. Uten API-nøkkel brukes demoresultater.</p>
+          </div>
+
+          <form id="search-form" class="search-form">
+            <label class="field">
+              <span>Sted</span>
+              <input id="search-input" name="query" type="search" placeholder="Oslo, Bergen, Tromso..." required />
+            </label>
+
+            <div class="date-grid">
+              <label class="field">
+                <span>Fra</span>
+                <input id="from-input" name="from" type="date" required />
+              </label>
+
+              <label class="field">
+                <span>Til</span>
+                <input id="to-input" name="to" type="date" required />
+              </label>
+
+              <label class="field">
+                <span>Lite nedbør (mm)</span>
+                <input id="light-input" name="light" type="number" min="0.1" max="20" step="0.1" value="1.0" required />
+              </label>
+            </div>
+
+            <button class="primary-button" type="submit">Søk stasjoner</button>
+          </form>
+
+          <div id="status" class="status">Klar til søk.</div>
+          <div id="places" class="places"></div>
+        </section>
+
+        <section class="results-stack">
+          <section class="card summary-card">
+            <div class="section-heading">
+              <h2>Oppsummering</h2>
+              <p id="summary-title">Velg en stasjon for å se historikk.</p>
+            </div>
+            <div id="summary-grid" class="summary-grid empty"></div>
+          </section>
+
+          <section class="card history-card">
+            <div class="section-heading">
+              <h2>Dag for dag</h2>
+              <p>Viser daglig nedbør og snødybde fra valgt kilde.</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Dato</th>
+                    <th>Nedbør</th>
+                    <th>Snødybde</th>
+                  </tr>
+                </thead>
+                <tbody id="history-body">
+                  <tr>
+                    <td colspan="3" class="empty-row">Ingen data valgt ennå.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="/script.js"></script>
+  </body>
+</html>
