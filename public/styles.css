@@ -113,13 +113,6 @@ body {
   line-height: 1.6;
 }
 
-.status {
-  margin: 0;
-  color: #514c44;
-  font-size: 0.95rem;
-  text-shadow: 0 1px 6px rgba(255, 248, 235, 0.5);
-}
-
 .footnote {
   position: fixed;
   right: 18px;

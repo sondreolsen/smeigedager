@@ -1,6 +1,5 @@
 const searchForm = document.querySelector("#search-form");
 const searchInput = document.querySelector("#search-input");
-const statusEl = document.querySelector("#status");
 const answerTextEl = document.querySelector("#answer-text");
 const answerMetaEl = document.querySelector("#answer-meta");
 const datalistEl = document.querySelector("#city-options");
@@ -9,10 +8,6 @@ const DATA_URL = "./data/smeigedager-2025.json";
 let dataset = null;
 let supportedCities = [];
 let placeholderTimer = null;
-
-function setStatus(message) {
-  statusEl.textContent = message;
-}
 
 function shuffle(values) {
   const copy = [...values];
@@ -73,7 +68,7 @@ function findPlace(query) {
 
 function renderAnswer(place) {
   answerTextEl.textContent = `${place.name} hadde ${place.smeigedager} smeigedager i ${dataset.year}.`;
-  answerMetaEl.textContent = `Basert pa Frost-data fra ${place.source.label}. Smeigedag betyr maks temperatur over ${dataset.criteria.maxTemperatureC} grader og ${dataset.criteria.precipitationMm} mm nedbor.`;
+  answerMetaEl.textContent = `Basert pa Frost-data fra ${place.source.label}. Smeigedag = Makstemperatur over ${dataset.criteria.maxTemperatureC} grader og ${dataset.criteria.precipitationMm} mm nedbor.`;
 }
 
 async function loadDataset() {
@@ -88,7 +83,6 @@ async function loadDataset() {
   supportedCities = payload.places.map((place) => place.name);
   fillDatalist(supportedCities);
   startPlaceholderRotation(supportedCities);
-  setStatus("Klar til sok.");
 }
 
 searchForm.addEventListener("submit", async (event) => {
@@ -99,8 +93,6 @@ searchForm.addEventListener("submit", async (event) => {
     return;
   }
 
-  setStatus(`Sjekker smeigedager for ${place}...`);
-
   try {
     const match = findPlace(place);
     if (!match) {
@@ -108,16 +100,13 @@ searchForm.addEventListener("submit", async (event) => {
     }
 
     renderAnswer(match);
-    setStatus("Ferdig.");
-  } catch (error) {
+  } catch (_error) {
     answerTextEl.textContent = "Jeg fant ikke et gyldig sted.";
     answerMetaEl.textContent = `Prov en av disse: ${supportedCities.join(", ")}.`;
-    setStatus(error.message);
   }
 });
 
-loadDataset().catch((error) => {
-  setStatus(error.message);
+loadDataset().catch(() => {
   answerTextEl.textContent = "Smeigedager-data kunne ikke lastes.";
   answerMetaEl.textContent = "Prov a laste siden pa nytt.";
 });
