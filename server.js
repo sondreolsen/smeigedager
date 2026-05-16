@@ -3,9 +3,12 @@ const fs = require("fs");
 const path = require("path");
 const { URL } = require("url");
 
+loadDotEnv();
+
 const PORT = Number(process.env.PORT || 3000);
 const PUBLIC_DIR = path.join(__dirname, "public");
 const FROST_CLIENT_ID = process.env.FROST_CLIENT_ID || "";
+const APP_BASE_URL = process.env.APP_BASE_URL || "http://localhost:3000";
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -41,6 +44,32 @@ const DEMO_PLACES = [
     lon: 18.9095,
   },
 ];
+
+function loadDotEnv() {
+  const envPath = path.join(__dirname, ".env");
+  if (!fs.existsSync(envPath)) {
+    return;
+  }
+
+  const contents = fs.readFileSync(envPath, "utf8");
+  for (const rawLine of contents.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) {
+      continue;
+    }
+
+    const separator = line.indexOf("=");
+    if (separator === -1) {
+      continue;
+    }
+
+    const key = line.slice(0, separator).trim();
+    const value = line.slice(separator + 1).trim().replace(/^['"]|['"]$/g, "");
+    if (key && process.env[key] === undefined) {
+      process.env[key] = value;
+    }
+  }
+}
 
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, {
@@ -145,7 +174,7 @@ async function fetchFrostJson(url) {
     headers: {
       Authorization: `Basic ${auth}`,
       Accept: "application/json",
-      "User-Agent": "VaeretHistorikk/1.0 https://example.local",
+      "User-Agent": `Smeigedager/1.0 ${APP_BASE_URL}`,
     },
   });
 
@@ -270,6 +299,23 @@ async function handleWeather(reqUrl, res) {
 
 const server = http.createServer(async (req, res) => {
   const reqUrl = new URL(req.url, `http://${req.headers.host}`);
+
+  if (reqUrl.pathname === "/api/meta") {
+    sendJson(res, 200, {
+      mode: FROST_CLIENT_ID ? "live" : "demo",
+      hasFrostClientId: Boolean(FROST_CLIENT_ID),
+      appBaseUrl: APP_BASE_URL,
+    });
+    return;
+  }
+
+  if (reqUrl.pathname === "/health") {
+    sendJson(res, 200, {
+      ok: true,
+      mode: FROST_CLIENT_ID ? "live" : "demo",
+    });
+    return;
+  }
 
   if (reqUrl.pathname === "/api/places") {
     await handlePlaceSearch(reqUrl, res);

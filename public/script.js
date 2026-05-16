@@ -9,6 +9,26 @@ const summaryTitleEl = document.querySelector("#summary-title");
 const summaryGridEl = document.querySelector("#summary-grid");
 const historyBodyEl = document.querySelector("#history-body");
 
+async function loadMeta() {
+  try {
+    const response = await fetch("/api/meta");
+    const payload = await response.json();
+
+    if (!response.ok) {
+      throw new Error("Kunne ikke lese appstatus.");
+    }
+
+    if (payload.mode === "live") {
+      setStatus("Klar til søk. Appen kjører med ekte Frost-data.");
+      return;
+    }
+
+    setStatus("Klar til søk. Appen kjører i demo-modus til FROST_CLIENT_ID er satt.");
+  } catch (_error) {
+    setStatus("Klar til søk.");
+  }
+}
+
 function formatDateInput(date) {
   return date.toISOString().slice(0, 10);
 }
@@ -171,3 +191,4 @@ placesEl.addEventListener("click", async (event) => {
 });
 
 setDefaultDates();
+loadMeta();

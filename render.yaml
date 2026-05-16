@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: smeigedager
+    runtime: node
+    plan: free
+    buildCommand: ""
+    startCommand: "npm start"
+    envVars:
+      - key: FROST_CLIENT_ID
+        sync: false
+      - key: APP_BASE_URL
+        sync: false
