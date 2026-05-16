@@ -131,6 +131,7 @@ const CACHE_VERSION = "2026-05-16-v1";
 const SOURCE_MATCH_CACHE_TTL_SECONDS = 60 * 60 * 24 * 30;
 const SOURCE_SUPPORT_CACHE_TTL_SECONDS = 60 * 60 * 24 * 30;
 const SMEIGEDAGER_CACHE_TTL_SECONDS = 60 * 60 * 12;
+let frostTokenCache = null;
 
 export default {
   async fetch(request, env, ctx) {
@@ -355,6 +356,10 @@ async function fetchFrostJson(url, env) {
 }
 
 async function getFrostAccessToken(env) {
+  if (frostTokenCache && frostTokenCache.expiresAt > Date.now() + 60_000) {
+    return frostTokenCache.accessToken;
+  }
+
   const body = new URLSearchParams({
     client_id: env.FROST_CLIENT_ID,
     client_secret: env.FROST_CLIENT_SECRET,
@@ -379,7 +384,12 @@ async function getFrostAccessToken(env) {
     throw new Error(message);
   }
 
-  return payload.access_token;
+  frostTokenCache = {
+    accessToken: payload.access_token,
+    expiresAt: Date.now() + Number(payload.expires_in || 86400) * 1000,
+  };
+
+  return frostTokenCache.accessToken;
 }
 
 function mapFrostPlaces(payload) {
@@ -438,7 +448,7 @@ async function searchFrostSources(query, env) {
 
   return [...collected.values()]
     .sort((a, b) => scoreSourceMatch(trimmedQuery, b) - scoreSourceMatch(trimmedQuery, a))
-    .slice(0, 20);
+    .slice(0, 12);
 }
 
 async function sourceSupportsSmeigedager(sourceId, env) {
