@@ -1,0 +1,129 @@
+{
+  "year": 2025,
+  "criteria": {
+    "maxTemperatureC": 18,
+    "precipitationMm": 0
+  },
+  "places": [
+    {
+      "name": "Arendal",
+      "aliases": ["Arendal"],
+      "smeigedager": 34,
+      "source": {
+        "label": "Torungen fyr (SN36200)"
+      }
+    },
+    {
+      "name": "Kristiansand",
+      "aliases": ["Kristiansand"],
+      "smeigedager": 61,
+      "source": {
+        "label": "Kjevik (SN39040)"
+      }
+    },
+    {
+      "name": "Oslo",
+      "aliases": ["Oslo"],
+      "smeigedager": 49,
+      "source": {
+        "label": "Oslo - Blindern (SN18700)"
+      }
+    },
+    {
+      "name": "Bergen",
+      "aliases": ["Bergen"],
+      "smeigedager": 33,
+      "source": {
+        "label": "Bergen - Florida (SN50540)"
+      }
+    },
+    {
+      "name": "Stavanger",
+      "aliases": ["Stavanger"],
+      "smeigedager": 29,
+      "source": {
+        "label": "Stavanger - Valand (SN44640)"
+      }
+    },
+    {
+      "name": "Troms\u00f8",
+      "aliases": ["Tromso", "Troms\u00f8"],
+      "smeigedager": 25,
+      "source": {
+        "label": "Tromso (SN90450)"
+      }
+    },
+    {
+      "name": "Bod\u00f8",
+      "aliases": ["Bodo", "Bod\u00f8"],
+      "smeigedager": 29,
+      "source": {
+        "label": "Bodo VI (SN82290)"
+      }
+    },
+    {
+      "name": "Steinkjer",
+      "aliases": ["Steinkjer"],
+      "smeigedager": 44,
+      "source": {
+        "label": "Steinkjer - Sondre Egge (SN71000)"
+      }
+    },
+    {
+      "name": "Trondheim",
+      "aliases": ["Trondheim"],
+      "smeigedager": 38,
+      "source": {
+        "label": "Trondheim - Voll (SN68860)"
+      }
+    },
+    {
+      "name": "Molde",
+      "aliases": ["Molde"],
+      "smeigedager": 0,
+      "source": {
+        "label": "Molde - Noisomhed (SN62290)"
+      }
+    },
+    {
+      "name": "Sandnes",
+      "aliases": ["Sandnes"],
+      "smeigedager": 31,
+      "source": {
+        "label": "Sola temperatur (SN44560) og Sandnes - Rovik nedbor (SN44730)"
+      }
+    },
+    {
+      "name": "Lyngdal",
+      "aliases": ["Lyngdal"],
+      "smeigedager": 48,
+      "source": {
+        "label": "Lyngdal (SN41825)"
+      }
+    },
+    {
+      "name": "Drammen",
+      "aliases": ["Drammen"],
+      "smeigedager": 55,
+      "source": {
+        "label": "Drammen - Berskog (SN26900)"
+      }
+    },
+    {
+      "name": "Sarpsborg",
+      "aliases": ["Sarpsborg"],
+      "smeigedager": 60,
+      "source": {
+        "label": "Sarpsborg (SN3190)"
+      }
+    },
+    {
+      "name": "Hamar",
+      "aliases": ["Hamar"],
+      "smeigedager": 60,
+      "source": {
+        "label": "Hamar II (SN12290)"
+      }
+    }
+  ]
+}

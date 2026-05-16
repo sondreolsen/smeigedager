@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smeigedager</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <form id="search-form" class="question-shell" autocomplete="off">
+        <label class="question-label" for="search-input">Hvor mange smeigedager var det i</label>
+        <div class="question-row">
+          <input id="search-input" name="query" type="search" list="city-options" placeholder="Oslo?" required />
+          <button type="submit" class="ask-button">Se svar</button>
+        </div>
+        <datalist id="city-options"></datalist>
+      </form>
+
+      <section id="answer" class="answer" aria-live="polite">
+        <p id="answer-text" class="answer-text">Skriv inn et sted for a finne antall smeigedager i 2025.</p>
+        <p id="answer-meta" class="answer-meta">En smeigedag er definert som maks temperatur over 18 grader og 0 mm nedbor.</p>
+      </section>
+
+      <p id="status" class="status">Klar.</p>
+    </main>
+
+    <p class="footnote">Data fra Meteorologisk institutt</p>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
