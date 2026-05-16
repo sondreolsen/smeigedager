@@ -135,6 +135,20 @@ Da vil `https://sondreolsen.github.io/smeigedager/` begynne å spørre live mot 
 - Backend kjører Frost-kallene sikkert.
 - `config.js` er bryteren som kobler nettsiden til live backend.
 
+## Cloudflare-backend
+
+Hvis du vil bruke Cloudflare i stedet for Render, er backend-koden gjort klar i:
+
+- [cloudflare-worker.mjs](C:/Users/sondr/Dropbox/Codex/Været/cloudflare-worker.mjs)
+
+Worker-en trenger disse secrets:
+
+- `FROST_CLIENT_ID`
+- `FROST_CLIENT_SECRET`
+- `APP_BASE_URL`
+
+Når Worker-en er publisert, setter du backend-URL-en i [config.js](C:/Users/sondr/Dropbox/Codex/Været/config.js).
+
 Forslag til drift:
 
 1. Opprett en ny Web Service i Render fra GitHub-repoet.
