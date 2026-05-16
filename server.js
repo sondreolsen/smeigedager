@@ -18,6 +18,42 @@ const MIME_TYPES = {
   ".svg": "image/svg+xml",
 };
 
+const SUPPORTED_CITIES = [
+  "Arendal",
+  "Kristiansand",
+  "Oslo",
+  "Bergen",
+  "Stavanger",
+  "Tromso",
+  "Bodo",
+  "Steinkjer",
+  "Trondheim",
+  "Molde",
+  "Sandnes",
+  "Lyngdal",
+  "Drammen",
+  "Sarpsborg",
+  "Hamar",
+];
+
+const DEMO_SMEIGE_DAYS = {
+  Arendal: 42,
+  Kristiansand: 47,
+  Oslo: 39,
+  Bergen: 24,
+  Stavanger: 27,
+  Tromso: 11,
+  Bodo: 9,
+  Steinkjer: 18,
+  Trondheim: 21,
+  Molde: 16,
+  Sandnes: 29,
+  Lyngdal: 35,
+  Drammen: 34,
+  Sarpsborg: 33,
+  Hamar: 31,
+};
+
 const DEMO_PLACES = [
   {
     id: "SN18700",
@@ -168,6 +204,19 @@ function summarizeSeries(days, lightPrecipitationLimit) {
   };
 }
 
+function normalizeCityName(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
+function canonicalCityName(value) {
+  const normalized = normalizeCityName(value);
+  return SUPPORTED_CITIES.find((city) => normalizeCityName(city) === normalized) || null;
+}
+
 async function fetchFrostJson(url) {
   const auth = Buffer.from(`${FROST_CLIENT_ID}:`).toString("base64");
   const response = await fetch(url, {
@@ -186,6 +235,125 @@ async function fetchFrostJson(url) {
   }
 
   return data;
+}
+
+async function fetchObservationSeries(sourceId, elementId, timeOffset) {
+  const endpoint = new URL("https://frost.met.no/observations/v0.jsonld");
+  endpoint.searchParams.set("sources", sourceId);
+  endpoint.searchParams.set("referencetime", "2025-01-01/2025-12-31");
+  endpoint.searchParams.set("elements", elementId);
+  endpoint.searchParams.set("timeoffsets", timeOffset);
+  endpoint.searchParams.set("levels", "default");
+  endpoint.searchParams.set("qualities", "0,1,2,3,4");
+
+  const payload = await fetchFrostJson(endpoint.toString());
+  const byDate = new Map();
+
+  for (const entry of payload.data || []) {
+    const observation = (entry.observations || []).find((item) => item.elementId === elementId);
+    if (!observation) {
+      continue;
+    }
+    byDate.set(String(entry.referenceTime).slice(0, 10), Number(observation.value));
+  }
+
+  return byDate;
+}
+
+async function sourceSupportsSmeigedager(sourceId) {
+  const endpoint = new URL("https://frost.met.no/observations/availableTimeSeries/v0.jsonld");
+  endpoint.searchParams.set("sources", sourceId);
+  endpoint.searchParams.set("referencetime", "2025-01-01/2025-12-31");
+  endpoint.searchParams.set("elements", "max(air_temperature P1D),sum(precipitation_amount P1D)");
+
+  try {
+    const payload = await fetchFrostJson(endpoint.toString());
+    const elementIds = new Set((payload.data || []).map((item) => item.elementId));
+    return (
+      elementIds.has("max(air_temperature P1D)") &&
+      elementIds.has("sum(precipitation_amount P1D)")
+    );
+  } catch (_error) {
+    return false;
+  }
+}
+
+async function resolveCitySource(city) {
+  const endpoint = new URL("https://frost.met.no/sources/v0.jsonld");
+  endpoint.searchParams.set("types", "SensorSystem");
+  endpoint.searchParams.set("name", `${city}*`);
+  endpoint.searchParams.set("fields", "id,name,municipality,county,geometry");
+
+  const payload = await fetchFrostJson(endpoint.toString());
+  const candidates = (payload.data || []).slice(0, 12);
+
+  for (const candidate of candidates) {
+    if (await sourceSupportsSmeigedager(candidate.id)) {
+      return {
+        id: candidate.id,
+        name: candidate.name,
+        municipality: candidate.municipality || "",
+        county: candidate.county || "",
+      };
+    }
+  }
+
+  throw new Error(`Fant ingen Frost-stasjon med riktige serier for ${city}.`);
+}
+
+async function getSmeigedagerForCity(city) {
+  const canonicalCity = canonicalCityName(city);
+  if (!canonicalCity) {
+    throw new Error("Stedet er ikke i den faste listen.");
+  }
+
+  if (!FROST_CLIENT_ID) {
+    return {
+      mode: "demo",
+      city: canonicalCity,
+      year: 2025,
+      smeigedager: DEMO_SMEIGE_DAYS[canonicalCity],
+      criteria: {
+        maxTemperatureC: 18,
+        precipitationMm: 0,
+      },
+      source: {
+        id: `${canonicalCity.toUpperCase()}-DEMO`,
+        name: `${canonicalCity} demo`,
+      },
+    };
+  }
+
+  const source = await resolveCitySource(canonicalCity);
+  const [temperatureByDate, precipitationByDate] = await Promise.all([
+    fetchObservationSeries(source.id, "max(air_temperature P1D)", "PT18H"),
+    fetchObservationSeries(source.id, "sum(precipitation_amount P1D)", "PT6H"),
+  ]);
+
+  let smeigedager = 0;
+
+  for (const [date, maxTemperature] of temperatureByDate.entries()) {
+    const precipitation = precipitationByDate.get(date);
+    if (precipitation === undefined) {
+      continue;
+    }
+
+    if (maxTemperature > 18 && precipitation === 0) {
+      smeigedager += 1;
+    }
+  }
+
+  return {
+    mode: "live",
+    city: canonicalCity,
+    year: 2025,
+    smeigedager,
+    criteria: {
+      maxTemperatureC: 18,
+      precipitationMm: 0,
+    },
+    source,
+  };
 }
 
 function mapFrostPlaces(payload) {
@@ -297,6 +465,26 @@ async function handleWeather(reqUrl, res) {
   }
 }
 
+async function handleSmeigedager(reqUrl, res) {
+  const place = (reqUrl.searchParams.get("place") || "").trim();
+  const canonicalCity = canonicalCityName(place);
+
+  if (!canonicalCity) {
+    sendJson(res, 400, {
+      error: "Velg et sted fra den faste listen.",
+      supportedCities: SUPPORTED_CITIES,
+    });
+    return;
+  }
+
+  try {
+    const payload = await getSmeigedagerForCity(canonicalCity);
+    sendJson(res, 200, payload);
+  } catch (error) {
+    sendJson(res, 502, { error: error.message, supportedCities: SUPPORTED_CITIES });
+  }
+}
+
 const server = http.createServer(async (req, res) => {
   const reqUrl = new URL(req.url, `http://${req.headers.host}`);
 
@@ -305,6 +493,7 @@ const server = http.createServer(async (req, res) => {
       mode: FROST_CLIENT_ID ? "live" : "demo",
       hasFrostClientId: Boolean(FROST_CLIENT_ID),
       appBaseUrl: APP_BASE_URL,
+      supportedCities: SUPPORTED_CITIES,
     });
     return;
   }
@@ -324,6 +513,11 @@ const server = http.createServer(async (req, res) => {
 
   if (reqUrl.pathname === "/api/weather") {
     await handleWeather(reqUrl, res);
+    return;
+  }
+
+  if (reqUrl.pathname === "/api/smeigedager") {
+    await handleSmeigedager(reqUrl, res);
     return;
   }
 
