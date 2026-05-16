@@ -96,6 +96,45 @@ window.SMEIGE_APP_CONFIG = {
 
 Når `apiBaseUrl` er satt, spør siden direkte mot backend for steder i Frost i stedet for bare den statiske eksempeldataen.
 
+## Dette gjør du videre
+
+1. Publiser backend.
+Bruk for eksempel Render og pek den til dette repoet.
+
+2. Sett miljøvariabler i backend-hostingen:
+
+```env
+FROST_CLIENT_ID=din-client-id
+FROST_CLIENT_SECRET=din-client-secret
+APP_BASE_URL=https://din-backend-url
+```
+
+3. Vent til backend er live, og test:
+
+```text
+https://din-backend-url/health
+https://din-backend-url/api/meta
+```
+
+4. Oppdater [config.js](C:/Users/sondr/Dropbox/Codex/Været/config.js):
+
+```js
+window.SMEIGE_APP_CONFIG = {
+  apiBaseUrl: "https://din-backend-url"
+};
+```
+
+5. Push den ene endringen til GitHub.
+Da vil `https://sondreolsen.github.io/smeigedager/` begynne å spørre live mot backend og ikke bare bruke den faste listen.
+
+6. Hvis GitHub Pages fortsatt viser gammel oppførsel, vent et minutt og last siden på nytt.
+
+## Kort forklart
+
+- GitHub Pages viser selve nettsiden.
+- Backend kjører Frost-kallene sikkert.
+- `config.js` er bryteren som kobler nettsiden til live backend.
+
 Forslag til drift:
 
 1. Opprett en ny Web Service i Render fra GitHub-repoet.
