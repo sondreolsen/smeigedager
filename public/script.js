@@ -108,7 +108,11 @@ async function fetchJson(url) {
 
 async function loadApiMeta() {
   const payload = await fetchJson(`${API_BASE_URL}/api/meta`);
-  supportedCities = payload.featuredCities || payload.supportedCities || FEATURED_CITIES;
+  supportedCities =
+    payload.rememberedPlaces ||
+    payload.featuredCities ||
+    payload.supportedCities ||
+    FEATURED_CITIES;
   fillDatalist(supportedCities);
   startPlaceholderRotation(supportedCities);
 }

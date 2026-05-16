@@ -44,6 +44,109 @@ const FEATURED_CITIES = [
   "Hamar",
 ];
 
+const REMEMBERED_PLACES = [
+  "Oslo",
+  "Bergen",
+  "Trondheim",
+  "Stavanger",
+  "Drammen",
+  "Fredrikstad",
+  "Sarpsborg",
+  "Skien",
+  "Porsgrunn",
+  "Kristiansand",
+  "Sandnes",
+  "Tromso",
+  "Alesund",
+  "Tonsberg",
+  "Moss",
+  "Bodo",
+  "Arendal",
+  "Askoy",
+  "Haugesund",
+  "Hamar",
+  "Halden",
+  "Larvik",
+  "Sandefjord",
+  "Asker",
+  "Gjorvik",
+  "Lillehammer",
+  "Molde",
+  "Harstad",
+  "Kongsberg",
+  "Horten",
+  "Jessheim",
+  "Ski",
+  "Elverum",
+  "Kristiansund",
+  "Narvik",
+  "Notodden",
+  "Mandal",
+  "Grimstad",
+  "Forde",
+  "Leirvik",
+  "Egersund",
+  "Lillestrom",
+  "Fauske",
+  "Stjordalshalsen",
+  "Levanger",
+  "Verdal",
+  "Namsos",
+  "Bryne",
+  "Mo i Rana",
+  "Steinkjer",
+  "Alta",
+  "Orkanger",
+  "Raufoss",
+  "Otta",
+  "Floro",
+  "Brumunddal",
+  "Hammerfest",
+  "Voss",
+  "Kongsvinger",
+  "Holmestrand",
+  "Sogndalsfjaera",
+  "Kopervik",
+  "Jorpeland",
+  "Aksdal",
+  "Sandnessjoen",
+  "Mosjoen",
+  "Finnsnes",
+  "Svolvaer",
+  "Sortland",
+  "Rorvik",
+  "Odda",
+  "Vennesla",
+  "Nittedal",
+  "Mjondalen",
+  "Hokksund",
+  "Kolbotn",
+  "Nesoddtangen",
+  "Sandvika",
+  "Billingstad",
+  "Bekkestua",
+  "Lierbyen",
+  "Myre",
+  "Ulsteinvik",
+  "Fosnavag",
+  "Hommelvik",
+  "Orsta",
+  "Volda",
+  "Straume",
+  "Knarvik",
+  "Osoyro",
+  "Kleppe",
+  "Naerbo",
+  "Kleppesto",
+  "Tananger",
+  "Saetre",
+  "As",
+  "Drobak",
+  "Gressvik",
+  "Kvernaland",
+  "Varhaug",
+];
+
 const SUPPORTED_CITIES = [
   "Arendal",
   "Kristiansand",
@@ -268,6 +371,11 @@ function canonicalCityName(value) {
   return SUPPORTED_CITIES.find((city) => normalizeCityName(city) === normalized) || null;
 }
 
+function rememberedPlaceName(value) {
+  const normalized = normalizeCityName(value);
+  return REMEMBERED_PLACES.find((place) => normalizeCityName(place) === normalized) || null;
+}
+
 function scoreSourceMatch(query, source) {
   const normalizedQuery = normalizeCityName(query);
   const name = normalizeCityName(source.name);
@@ -434,12 +542,26 @@ async function resolveCitySource(city) {
 async function searchFrostSources(query) {
   const collected = new Map();
   const trimmedQuery = query.trim();
+  const rememberedQuery = rememberedPlaceName(trimmedQuery) || trimmedQuery;
+  const exactMunicipality = rememberedQuery.toUpperCase();
   const normalizedUpper = trimmedQuery.toUpperCase();
 
   const urls = [];
+  const exactByName = new URL("https://frost.met.no/sources/v0.jsonld");
+  exactByName.searchParams.set("types", "SensorSystem");
+  exactByName.searchParams.set("name", rememberedQuery);
+  exactByName.searchParams.set("fields", "id,name,municipality,county,geometry");
+  urls.push(exactByName);
+
+  const exactByMunicipality = new URL("https://frost.met.no/sources/v0.jsonld");
+  exactByMunicipality.searchParams.set("types", "SensorSystem");
+  exactByMunicipality.searchParams.set("municipality", exactMunicipality);
+  exactByMunicipality.searchParams.set("fields", "id,name,municipality,county,geometry");
+  urls.push(exactByMunicipality);
+
   const byName = new URL("https://frost.met.no/sources/v0.jsonld");
   byName.searchParams.set("types", "SensorSystem");
-  byName.searchParams.set("name", `${trimmedQuery}*`);
+  byName.searchParams.set("name", `${rememberedQuery}*`);
   byName.searchParams.set("fields", "id,name,municipality,county,geometry");
   urls.push(byName);
 
@@ -736,6 +858,7 @@ const server = http.createServer(async (req, res) => {
       appBaseUrl: APP_BASE_URL,
       supportedCities: SUPPORTED_CITIES,
       featuredCities: FEATURED_CITIES,
+      rememberedPlaces: REMEMBERED_PLACES,
     });
     return;
   }
