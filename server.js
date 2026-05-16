@@ -11,6 +11,12 @@ const FROST_CLIENT_ID = process.env.FROST_CLIENT_ID || "";
 const FROST_CLIENT_SECRET = process.env.FROST_CLIENT_SECRET || "";
 const APP_BASE_URL = process.env.APP_BASE_URL || "http://localhost:3000";
 let frostTokenCache = null;
+const SOURCE_MATCH_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 30;
+const SOURCE_SUPPORT_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 30;
+const SMEIGEDAGER_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
+const sourceMatchCache = new Map();
+const sourceSupportCache = new Map();
+const smeigedagerCache = new Map();
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -236,6 +242,27 @@ function normalizeCityName(value) {
     .toLowerCase();
 }
 
+function readMemoryCache(store, key) {
+  const entry = store.get(key);
+  if (!entry) {
+    return null;
+  }
+
+  if (entry.expiresAt <= Date.now()) {
+    store.delete(key);
+    return null;
+  }
+
+  return entry.value;
+}
+
+function writeMemoryCache(store, key, value, ttlMs) {
+  store.set(key, {
+    value,
+    expiresAt: Date.now() + ttlMs,
+  });
+}
+
 function canonicalCityName(value) {
   const normalized = normalizeCityName(value);
   return SUPPORTED_CITIES.find((city) => normalizeCityName(city) === normalized) || null;
@@ -356,6 +383,11 @@ async function fetchObservationSeries(sourceId, elementId, timeOffset) {
 }
 
 async function sourceSupportsSmeigedager(sourceId) {
+  const cachedSupport = readMemoryCache(sourceSupportCache, sourceId);
+  if (typeof cachedSupport === "boolean") {
+    return cachedSupport;
+  }
+
   const endpoint = new URL("https://frost.met.no/observations/availableTimeSeries/v0.jsonld");
   endpoint.searchParams.set("sources", sourceId);
   endpoint.searchParams.set("referencetime", "2025-01-01/2025-12-31");
@@ -364,11 +396,14 @@ async function sourceSupportsSmeigedager(sourceId) {
   try {
     const payload = await fetchFrostJson(endpoint.toString());
     const elementIds = new Set((payload.data || []).map((item) => item.elementId));
-    return (
+    const isSupported = (
       elementIds.has("max(air_temperature P1D)") &&
       elementIds.has("sum(precipitation_amount P1D)")
     );
+    writeMemoryCache(sourceSupportCache, sourceId, isSupported, SOURCE_SUPPORT_CACHE_TTL_MS);
+    return isSupported;
   } catch (_error) {
+    writeMemoryCache(sourceSupportCache, sourceId, false, SOURCE_SUPPORT_CACHE_TTL_MS);
     return false;
   }
 }
@@ -431,15 +466,29 @@ async function searchFrostSources(query) {
 }
 
 async function resolvePlaceSource(query) {
+  const normalizedQuery = normalizeCityName(query);
+  const cachedSource = readMemoryCache(sourceMatchCache, normalizedQuery);
+  if (cachedSource) {
+    return cachedSource;
+  }
+
   const candidates = await searchFrostSources(query);
 
   if (!candidates.length) {
     throw new Error("Fant ingen Frost-stasjoner som matcher søket.");
   }
 
-  for (const candidate of candidates) {
-    if (await sourceSupportsSmeigedager(candidate.id)) {
-      return candidate;
+  const supportChecks = await Promise.all(
+    candidates.map(async (candidate) => ({
+      candidate,
+      isSupported: await sourceSupportsSmeigedager(candidate.id),
+    })),
+  );
+
+  for (const result of supportChecks) {
+    if (result.isSupported) {
+      writeMemoryCache(sourceMatchCache, normalizedQuery, result.candidate, SOURCE_MATCH_CACHE_TTL_MS);
+      return result.candidate;
     }
   }
 
@@ -502,6 +551,12 @@ async function getSmeigedagerForCity(city) {
 }
 
 async function getSmeigedagerForQuery(query) {
+  const normalizedQuery = normalizeCityName(query);
+  const cachedPayload = readMemoryCache(smeigedagerCache, normalizedQuery);
+  if (cachedPayload) {
+    return cachedPayload;
+  }
+
   const canonicalCity = canonicalCityName(query);
   if (!FROST_CLIENT_ID) {
     if (!canonicalCity) {
@@ -528,7 +583,7 @@ async function getSmeigedagerForQuery(query) {
     }
   }
 
-  return {
+  const payload = {
     mode: "live",
     city: source.municipality || source.name,
     year: 2025,
@@ -539,6 +594,9 @@ async function getSmeigedagerForQuery(query) {
     },
     source,
   };
+
+  writeMemoryCache(smeigedagerCache, normalizedQuery, payload, SMEIGEDAGER_CACHE_TTL_MS);
+  return payload;
 }
 
 function mapFrostPlaces(payload) {

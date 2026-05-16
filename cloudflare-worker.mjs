@@ -24,8 +24,13 @@ const JSON_HEADERS = {
   "Cache-Control": "no-store",
 };
 
+const CACHE_VERSION = "2026-05-16-v1";
+const SOURCE_MATCH_CACHE_TTL_SECONDS = 60 * 60 * 24 * 30;
+const SOURCE_SUPPORT_CACHE_TTL_SECONDS = 60 * 60 * 24 * 30;
+const SMEIGEDAGER_CACHE_TTL_SECONDS = 60 * 60 * 12;
+
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
     if (request.method === "OPTIONS") {
@@ -50,7 +55,7 @@ export default {
     }
 
     if (url.pathname === "/api/smeigedager") {
-      return handleSmeigedager(url, env);
+      return handleSmeigedager(url, env, ctx);
     }
 
     return jsonResponse(404, { error: "Not found" });
@@ -70,6 +75,38 @@ function normalizeText(value) {
     .replace(/[\u0300-\u036f]/g, "")
     .trim()
     .toLowerCase();
+}
+
+function getCacheRequest(namespace, key) {
+  return new Request(
+    `https://smeigedager-cache.internal/${CACHE_VERSION}/${namespace}/${encodeURIComponent(key)}`,
+  );
+}
+
+async function readWorkerCache(namespace, key) {
+  const response = await caches.default.match(getCacheRequest(namespace, key));
+  if (!response) {
+    return null;
+  }
+
+  return response.json().catch(() => null);
+}
+
+function writeWorkerCache(namespace, key, payload, ttlSeconds, ctx) {
+  const response = new Response(JSON.stringify(payload), {
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": `public, max-age=${ttlSeconds}`,
+    },
+  });
+
+  const operation = caches.default.put(getCacheRequest(namespace, key), response);
+  if (ctx) {
+    ctx.waitUntil(operation);
+    return;
+  }
+
+  return operation;
 }
 
 function scoreSourceMatch(query, source) {
@@ -121,7 +158,7 @@ async function handlePlaceSearch(url, env) {
   }
 }
 
-async function handleSmeigedager(url, env) {
+async function handleSmeigedager(url, env, ctx) {
   const query = String(url.searchParams.get("place") || "").trim();
   if (!query) {
     return jsonResponse(400, {
@@ -135,7 +172,13 @@ async function handleSmeigedager(url, env) {
   }
 
   try {
-    const source = await resolvePlaceSource(query, env);
+    const normalizedQuery = normalizeText(query);
+    const cachedPayload = await readWorkerCache("smeigedager", normalizedQuery);
+    if (cachedPayload) {
+      return jsonResponse(200, cachedPayload);
+    }
+
+    const source = await resolvePlaceSourceCached(query, env, ctx);
     const [temperatureByDate, precipitationByDate] = await Promise.all([
       fetchObservationSeries(source.id, "max(air_temperature P1D)", "PT18H", env),
       fetchObservationSeries(source.id, "sum(precipitation_amount P1D)", "PT6H", env),
@@ -153,7 +196,7 @@ async function handleSmeigedager(url, env) {
       }
     }
 
-    return jsonResponse(200, {
+    const payload = {
       mode: "live",
       city: source.municipality || source.name,
       year: 2025,
@@ -163,7 +206,10 @@ async function handleSmeigedager(url, env) {
         precipitationMm: 0,
       },
       source,
-    });
+    };
+
+    writeWorkerCache("smeigedager", normalizedQuery, payload, SMEIGEDAGER_CACHE_TTL_SECONDS, ctx);
+    return jsonResponse(200, payload);
   } catch (error) {
     return jsonResponse(502, {
       error: error.message,
@@ -273,6 +319,11 @@ async function searchFrostSources(query, env) {
 }
 
 async function sourceSupportsSmeigedager(sourceId, env) {
+  const cachedSupport = await readWorkerCache("source-support", sourceId);
+  if (typeof cachedSupport === "boolean") {
+    return cachedSupport;
+  }
+
   const endpoint = new URL("https://frost.met.no/observations/availableTimeSeries/v0.jsonld");
   endpoint.searchParams.set("sources", sourceId);
   endpoint.searchParams.set("referencetime", "2025-01-01/2025-12-31");
@@ -281,11 +332,14 @@ async function sourceSupportsSmeigedager(sourceId, env) {
   try {
     const payload = await fetchFrostJson(endpoint.toString(), env);
     const elementIds = new Set((payload.data || []).map((item) => item.elementId));
-    return (
+    const isSupported = (
       elementIds.has("max(air_temperature P1D)") &&
       elementIds.has("sum(precipitation_amount P1D)")
     );
+    await writeWorkerCache("source-support", sourceId, isSupported, SOURCE_SUPPORT_CACHE_TTL_SECONDS);
+    return isSupported;
   } catch (_error) {
+    await writeWorkerCache("source-support", sourceId, false, SOURCE_SUPPORT_CACHE_TTL_SECONDS);
     return false;
   }
 }
@@ -303,6 +357,35 @@ async function resolvePlaceSource(query, env) {
   }
 
   throw new Error("Fant ingen Frost-stasjon med daglig makstemperatur og nedbør for dette stedet.");
+}
+
+async function resolvePlaceSourceCached(query, env, ctx) {
+  const normalizedQuery = normalizeText(query);
+  const cachedSource = await readWorkerCache("source-match", normalizedQuery);
+  if (cachedSource) {
+    return cachedSource;
+  }
+
+  const candidates = await searchFrostSources(query, env);
+  if (!candidates.length) {
+    throw new Error("Fant ingen Frost-stasjoner som matcher sÃ¸ket.");
+  }
+
+  const supportChecks = await Promise.all(
+    candidates.map(async (candidate) => ({
+      candidate,
+      isSupported: await sourceSupportsSmeigedager(candidate.id, env),
+    })),
+  );
+
+  for (const result of supportChecks) {
+    if (result.isSupported) {
+      writeWorkerCache("source-match", normalizedQuery, result.candidate, SOURCE_MATCH_CACHE_TTL_SECONDS, ctx);
+      return result.candidate;
+    }
+  }
+
+  throw new Error("Fant ingen Frost-stasjon med daglig makstemperatur og nedbÃ¸r for dette stedet.");
 }
 
 async function fetchObservationSeries(sourceId, elementId, timeOffset, env) {
