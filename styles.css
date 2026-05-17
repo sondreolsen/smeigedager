@@ -101,7 +101,7 @@ body {
 
 .answer-text {
   margin: 0;
-  font-size: clamp(1.6rem, 3.2vw, 2.72rem);
+  font-size: clamp(1.28rem, 2.56vw, 2.18rem);
   line-height: 1.08;
   letter-spacing: -0.04em;
 }
@@ -163,7 +163,7 @@ body {
   }
 
   .answer-text {
-    font-size: 1.28rem;
+    font-size: 1.02rem;
   }
 
   .answer-meta {
