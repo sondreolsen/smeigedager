@@ -28,20 +28,20 @@ const REMEMBERED_PLACES = [
   "Porsgrunn",
   "Kristiansand",
   "Sandnes",
-  "Tromso",
-  "Alesund",
-  "Tonsberg",
+  "Tromsø",
+  "Ålesund",
+  "Tønsberg",
   "Moss",
-  "Bodo",
+  "Bodø",
   "Arendal",
-  "Askoy",
+  "Askøy",
   "Haugesund",
   "Hamar",
   "Halden",
   "Larvik",
   "Sandefjord",
   "Asker",
-  "Gjorvik",
+  "Gjøvik",
   "Lillehammer",
   "Molde",
   "Harstad",
@@ -55,12 +55,12 @@ const REMEMBERED_PLACES = [
   "Notodden",
   "Mandal",
   "Grimstad",
-  "Forde",
+  "Førde",
   "Leirvik",
   "Egersund",
-  "Lillestrom",
+  "Lillestrøm",
   "Fauske",
-  "Stjordalshalsen",
+  "Stjørdalshalsen",
   "Levanger",
   "Verdal",
   "Namsos",
@@ -71,22 +71,22 @@ const REMEMBERED_PLACES = [
   "Orkanger",
   "Raufoss",
   "Otta",
-  "Floro",
+  "Florø",
   "Brumunddal",
   "Hammerfest",
   "Voss",
   "Kongsvinger",
   "Holmestrand",
-  "Sogndalsfjaera",
+  "Sogndalsfjøra",
   "Kopervik",
   "Jorpeland",
   "Aksdal",
-  "Sandnessjoen",
-  "Mosjoen",
+  "Sandnessjøen",
+  "Mosjøen",
   "Finnsnes",
-  "Svolvaer",
+  "Svolvær",
   "Sortland",
-  "Rorvik",
+  "Rørvik",
   "Odda",
   "Vennesla",
   "Nittedal",
@@ -100,49 +100,24 @@ const REMEMBERED_PLACES = [
   "Lierbyen",
   "Myre",
   "Ulsteinvik",
-  "Fosnavag",
+  "Fosnavåg",
   "Hommelvik",
-  "Orsta",
+  "Ørsta",
   "Volda",
   "Straume",
   "Knarvik",
-  "Osoyro",
+  "Osøyro",
   "Kleppe",
-  "Naerbo",
-  "Kleppesto",
+  "Nærbø",
+  "Kleppestø",
   "Tananger",
-  "Saetre",
+  "Sætre",
   "As",
-  "Drobak",
+  "Drøbak",
   "Gressvik",
   "Kvernaland",
   "Varhaug",
 ];
-
-const QUERY_NAME_OVERRIDES = {
-  Tromso: "Tromsø",
-  Bodo: "Bodø",
-  Alesund: "Ålesund",
-  Tonsberg: "Tønsberg",
-  Gjorvik: "Gjøvik",
-  Forde: "Førde",
-  Floro: "Florø",
-  Drobak: "Drøbak",
-  Naerbo: "Nærbø",
-  Orsta: "Ørsta",
-  Osoyro: "Osøyro",
-  Sandnessjoen: "Sandnessjøen",
-  Mosjoen: "Mosjøen",
-  Svolvaer: "Svolvær",
-  Rorvik: "Rørvik",
-  Saetre: "Sætre",
-  Askoy: "Askøy",
-  Kleppesto: "Kleppestø",
-  Stjordalshalsen: "Stjørdalshalsen",
-  Lillestrom: "Lillestrøm",
-  Sogndalsfjaera: "Sogndalsfjøra",
-  Fosnavag: "Fosnavåg",
-};
 
 const JSON_HEADERS = {
   "Content-Type": "application/json; charset=utf-8",
@@ -203,6 +178,9 @@ function normalizeText(value) {
   return String(value || "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+    .replace(/æ/gi, "ae")
+    .replace(/ø/gi, "o")
+    .replace(/å/gi, "a")
     .trim()
     .toLowerCase();
 }
@@ -273,8 +251,7 @@ function getRememberedPlaceName(query) {
 }
 
 function getPreferredQueryName(query) {
-  const rememberedPlace = getRememberedPlaceName(query) || query.trim();
-  return QUERY_NAME_OVERRIDES[rememberedPlace] || rememberedPlace;
+  return getRememberedPlaceName(query) || query.trim();
 }
 
 async function handlePlaceSearch(url, env) {

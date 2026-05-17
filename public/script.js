@@ -68,6 +68,9 @@ function normalize(value) {
   return String(value || "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+    .replace(/æ/gi, "ae")
+    .replace(/ø/gi, "o")
+    .replace(/å/gi, "a")
     .trim()
     .toLowerCase();
 }

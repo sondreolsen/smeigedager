@@ -115,10 +115,9 @@
       }
     },
     {
-      "name": "Tromso",
+      "name": "Tromsø",
       "aliases": [
-        "Tromso",
-        "TROMSØ"
+        "Tromsø"
       ],
       "smeigedager": 25,
       "source": {
@@ -126,9 +125,9 @@
       }
     },
     {
-      "name": "Alesund",
+      "name": "Ålesund",
       "aliases": [
-        "Alesund",
+        "Ålesund",
         "ÅLESUND IV"
       ],
       "smeigedager": 2,
@@ -137,10 +136,9 @@
       }
     },
     {
-      "name": "Tonsberg",
+      "name": "Tønsberg",
       "aliases": [
-        "Tonsberg",
-        "TØNSBERG",
+        "Tønsberg",
         "TØNSBERG - KARLSVIK"
       ],
       "smeigedager": 57,
@@ -160,10 +158,9 @@
       }
     },
     {
-      "name": "Bodo",
+      "name": "Bodø",
       "aliases": [
-        "Bodo",
-        "BODØ",
+        "Bodø",
         "BODØ VI"
       ],
       "smeigedager": 29,
@@ -315,10 +312,9 @@
       }
     },
     {
-      "name": "Lillestrom",
+      "name": "Lillestrøm",
       "aliases": [
-        "Lillestrom",
-        "LILLESTRØM",
+        "Lillestrøm",
         "SKEDSMO - HELLERUD"
       ],
       "smeigedager": 55,
@@ -437,9 +433,9 @@
       }
     },
     {
-      "name": "Mosjoen",
+      "name": "Mosjøen",
       "aliases": [
-        "Mosjoen",
+        "Mosjøen",
         "VEFSN",
         "MOSJØEN LUFTHAVN"
       ],
@@ -494,10 +490,9 @@
       }
     },
     {
-      "name": "Orsta",
+      "name": "Ørsta",
       "aliases": [
-        "Orsta",
-        "ØRSTA",
+        "Ørsta",
         "ØRSTA - EITREFJELL"
       ],
       "smeigedager": 17,

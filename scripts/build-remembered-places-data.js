@@ -6,30 +6,6 @@ const SERVER_PATH = path.join(ROOT_DIR, "server.js");
 const OUTPUT_PATH = path.join(ROOT_DIR, "data", "remembered-places-2025.json");
 const API_BASE_URL = "https://smeidager-api.sondreolsen.workers.dev";
 const CONCURRENCY = 3;
-const QUERY_NAME_OVERRIDES = {
-  Tromso: "Tromsø",
-  Bodo: "Bodø",
-  Alesund: "Ålesund",
-  Tonsberg: "Tønsberg",
-  Gjorvik: "Gjøvik",
-  Forde: "Førde",
-  Floro: "Florø",
-  Drobak: "Drøbak",
-  Naerbo: "Nærbø",
-  Orsta: "Ørsta",
-  Osoyro: "Osøyro",
-  Sandnessjoen: "Sandnessjøen",
-  Mosjoen: "Mosjøen",
-  Svolvaer: "Svolvær",
-  Rorvik: "Rørvik",
-  Saetre: "Sætre",
-  Askoy: "Askøy",
-  Kleppesto: "Kleppestø",
-  Stjordalshalsen: "Stjørdalshalsen",
-  Lillestrom: "Lillestrøm",
-  Sogndalsfjaera: "Sogndalsfjøra",
-  Fosnavag: "Fosnavåg",
-};
 
 function readRememberedPlaces() {
   const source = fs.readFileSync(SERVER_PATH, "utf8");
@@ -54,6 +30,9 @@ function uniqueAliases(...values) {
     const normalized = text
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
+      .replace(/æ/gi, "ae")
+      .replace(/ø/gi, "o")
+      .replace(/å/gi, "a")
       .trim()
       .toLowerCase();
     if (seen.has(normalized)) {
@@ -67,8 +46,7 @@ function uniqueAliases(...values) {
 }
 
 async function fetchPlace(place) {
-  const query = QUERY_NAME_OVERRIDES[place] || place;
-  const response = await fetch(`${API_BASE_URL}/api/smeigedager?place=${encodeURIComponent(query)}`);
+  const response = await fetch(`${API_BASE_URL}/api/smeigedager?place=${encodeURIComponent(place)}`);
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
