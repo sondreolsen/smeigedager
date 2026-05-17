@@ -41,6 +41,8 @@ const DISPLAY_NAME_OVERRIDES = {
   Mosjoen: "Mosjøen",
   Svolvaer: "Svolvær",
   Rorvik: "Rørvik",
+  Jorpeland: "Jørpeland",
+  Mjondalen: "Mjøndalen",
   Saetre: "Sætre",
   Askoy: "Askøy",
   Kleppesto: "Kleppestø",
