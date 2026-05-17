@@ -187,11 +187,13 @@ searchForm.addEventListener("submit", async (event) => {
     if (API_BASE_URL) {
       const cachedMatch = findPlace(place);
       if (cachedMatch) {
+        searchInput.value = `${formatDisplayPlace(cachedMatch.name)}?`;
         renderAnswerFromDataset(cachedMatch);
         return;
       }
 
       const payload = await fetchJson(`${API_BASE_URL}/api/smeigedager?place=${encodeURIComponent(place)}`);
+      searchInput.value = `${formatDisplayPlace(payload.city)}?`;
       renderAnswerFromApi(payload);
       return;
     }
@@ -201,6 +203,7 @@ searchForm.addEventListener("submit", async (event) => {
       throw new Error("Velg et sted fra listen.");
     }
 
+    searchInput.value = `${formatDisplayPlace(match.name)}?`;
     renderAnswerFromDataset(match);
   } catch (_error) {
     answerTextEl.textContent = "Jeg fant ikke et gyldig sted.";
