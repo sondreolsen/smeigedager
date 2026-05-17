@@ -72,6 +72,13 @@ function normalize(value) {
     .toLowerCase();
 }
 
+function formatDisplayPlace(value) {
+  return String(value || "")
+    .trim()
+    .toLocaleLowerCase("nb-NO")
+    .replace(/(^|\s|-)\p{L}/gu, (match) => match.toLocaleUpperCase("nb-NO"));
+}
+
 function findPlace(query) {
   if (!dataset) {
     return null;
@@ -88,12 +95,12 @@ function findPlace(query) {
 
 function renderAnswerFromDataset(place) {
   answerTextEl.textContent = `${place.name} hadde ${place.smeigedager} smeigedager i ${dataset.year}.`;
-  answerMetaEl.textContent = `Basert pa Frost-data fra ${place.source.label}. Smeigedag = Makstemperatur over ${dataset.criteria.maxTemperatureC} grader og ${dataset.criteria.precipitationMm} mm nedbor.`;
+  answerMetaEl.textContent = "";
 }
 
 function renderAnswerFromApi(payload) {
-  answerTextEl.textContent = `${payload.city} hadde ${payload.smeigedager} smeigedager i ${payload.year}.`;
-  answerMetaEl.textContent = `Basert pa Frost-data fra ${payload.source.name} (${payload.source.id}). Smeigedag = Makstemperatur over ${payload.criteria.maxTemperatureC} grader og ${payload.criteria.precipitationMm} mm nedbor.`;
+  answerTextEl.textContent = `${formatDisplayPlace(payload.city)} hadde ${payload.smeigedager} smeigedager i ${payload.year}.`;
+  answerMetaEl.textContent = "";
 }
 
 async function fetchJson(url) {
@@ -163,15 +170,11 @@ searchForm.addEventListener("submit", async (event) => {
     renderAnswerFromDataset(match);
   } catch (_error) {
     answerTextEl.textContent = "Jeg fant ikke et gyldig sted.";
-    answerMetaEl.textContent = API_BASE_URL
-      ? "Prov et annet sted, eller sjekk at backend-URL-en i config.js er riktig."
-      : `Prov en av disse: ${supportedCities.join(", ")}.`;
+    answerMetaEl.textContent = "";
   }
 });
 
  (API_BASE_URL ? Promise.all([loadApiMeta(), loadFastDataset()]) : loadStaticDataset()).catch(() => {
   answerTextEl.textContent = "Smeigedager-data kunne ikke lastes.";
-  answerMetaEl.textContent = API_BASE_URL
-    ? "Sjekk at backend-URL-en i config.js peker til en levende API."
-    : "Prov a laste siden pa nytt.";
+  answerMetaEl.textContent = "";
 });
