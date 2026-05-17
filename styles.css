@@ -39,9 +39,10 @@ body {
   margin: 0;
   padding: 0 6px;
   font-family: "Chewy", Georgia, "Times New Roman", serif;
-  font-size: clamp(1.45rem, 2vw, 2rem);
-  line-height: 1.05;
-  letter-spacing: 0.01em;
+  font-size: clamp(1.22rem, 1.68vw, 1.7rem);
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
   color: #0f8f95;
   text-shadow:
     2px 2px 0 rgba(255, 183, 77, 0.7),
@@ -138,6 +139,10 @@ body {
 }
 
 @media (max-width: 980px) {
+  .page-title {
+    white-space: normal;
+  }
+
   .question-row {
     flex-direction: column;
     align-items: stretch;
