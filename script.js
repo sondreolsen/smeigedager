@@ -25,6 +25,31 @@ const FEATURED_CITIES = [
   "Hamar",
 ];
 
+const DISPLAY_NAME_OVERRIDES = {
+  Tromso: "Tromsø",
+  Bodo: "Bodø",
+  Alesund: "Ålesund",
+  Tonsberg: "Tønsberg",
+  Gjorvik: "Gjøvik",
+  Forde: "Førde",
+  Floro: "Florø",
+  Drobak: "Drøbak",
+  Naerbo: "Nærbø",
+  Orsta: "Ørsta",
+  Osoyro: "Osøyro",
+  Sandnessjoen: "Sandnessjøen",
+  Mosjoen: "Mosjøen",
+  Svolvaer: "Svolvær",
+  Rorvik: "Rørvik",
+  Saetre: "Sætre",
+  Askoy: "Askøy",
+  Kleppesto: "Kleppestø",
+  Stjordalshalsen: "Stjørdalshalsen",
+  Lillestrom: "Lillestrøm",
+  Sogndalsfjaera: "Sogndalsfjøra",
+  Fosnavag: "Fosnavåg",
+};
+
 let dataset = null;
 let supportedCities = [...FEATURED_CITIES];
 let placeholderTimer = null;
@@ -39,7 +64,7 @@ function shuffle(values) {
 }
 
 function updatePlaceholder(city) {
-  searchInput.placeholder = `${city}?`;
+  searchInput.placeholder = `${formatDisplayPlace(city)}?`;
 }
 
 function startPlaceholderRotation(cities) {
@@ -61,7 +86,9 @@ function startPlaceholderRotation(cities) {
 }
 
 function fillDatalist(cities) {
-  datalistEl.innerHTML = cities.map((city) => `<option value="${city}"></option>`).join("");
+  datalistEl.innerHTML = cities
+    .map((city) => `<option value="${formatDisplayPlace(city)}"></option>`)
+    .join("");
 }
 
 function normalize(value) {
@@ -76,7 +103,9 @@ function normalize(value) {
 }
 
 function formatDisplayPlace(value) {
-  return String(value || "")
+  const original = String(value || "").trim();
+  const overridden = DISPLAY_NAME_OVERRIDES[original] || original;
+  return overridden
     .trim()
     .toLocaleLowerCase("nb-NO")
     .replace(/(^|\s|-)\p{L}/gu, (match) => match.toLocaleUpperCase("nb-NO"));
